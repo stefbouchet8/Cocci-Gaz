@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1f4e8c">
+<link rel="icon" href="icon-192.png">
+<title>Commande gaz</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f7f1;--card:#fff;--ink:#1d2a21;--mute:#64736a;--line:#d6dfd2;--green:#2f6b3f;--red:#d4001a;--soft:#e8f0e4;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a16;--card:#1c241f;--ink:#e8efe9;--mute:#9aaba0;--line:#2f3b33;--green:#6fc287;--red:#ff7a6b;--soft:#243029}}
+:root[data-theme="dark"]{--bg:#141a16;--card:#1c241f;--ink:#e8efe9;--mute:#9aaba0;--line:#2f3b33;--green:#6fc287;--red:#ff7a6b;--soft:#243029}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,sans-serif;line-height:1.4}
+main{max-width:760px;margin:0 auto;padding:20px 14px 40px}
+.logo{background:#fff;border-radius:12px;padding:8px;margin-bottom:14px;text-align:center}.logo img{max-width:100%;height:auto;max-height:130px}
+h1{font-size:1.5rem;font-weight:800;margin:0 0 14px}
+h2{font-size:1.15rem;font-weight:800;margin:0;color:var(--green)}
+.ch{display:flex;justify-content:space-between;align-items:center;margin:18px 0 6px}
+.top{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.top label{flex:1;min-width:150px;font-size:.85rem;color:var(--mute);display:flex;flex-direction:column;gap:4px}
+input,select{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-width:0}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--green);outline-offset:1px}
+.head,.row{display:grid;grid-template-columns:minmax(0,2.2fr) 78px 84px 84px 84px 120px;gap:6px;align-items:center}
+.head{font-size:.78rem;color:var(--mute);padding:0 4px 6px}
+.row{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px;margin-bottom:6px}
+.row.on{border-color:var(--green);background:var(--soft)}
+.sub{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;padding-right:4px}
+.act{display:flex;justify-content:flex-end}
+.x{background:none;border:0;color:var(--mute);font-size:1rem;cursor:pointer;padding:8px 6px}
+.x:hover{color:var(--red)}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+button.b{font:inherit;font-weight:600;border-radius:8px;border:1px solid var(--green);background:var(--card);color:var(--green);padding:10px 14px;cursor:pointer}
+button.b.s{padding:6px 10px;font-size:.85rem}
+button.b.p{background:var(--green);color:var(--bg)}
+.total{position:sticky;bottom:0;background:var(--card);border:2px solid var(--green);border-radius:12px;padding:12px 16px;display:flex;justify-content:space-between;align-items:baseline;margin-top:14px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+.total span{color:var(--mute);font-size:.9rem}
+.total strong{font-size:1.9rem;font-weight:800;color:var(--red);font-variant-numeric:tabular-nums}
+.total{display:block}.ln{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:2px 0}.ln input{width:64px;padding:4px 6px;text-align:right;display:inline-block}.ln.big{border-top:1px solid var(--line);margin-top:6px;padding-top:6px}.total .ln span{color:var(--mute);font-size:.9rem}.ln b{font-variant-numeric:tabular-nums}
+.sync{font-size:.8rem;color:var(--mute);margin:-6px 0 10px}
+#login{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:10;padding:20px}
+#login .box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;max-width:360px;width:100%;display:flex;flex-direction:column;gap:10px}
+#login .box p{margin:0;color:var(--mute);font-size:.9rem}
+#lerr{color:var(--red);font-size:.85rem;min-height:1.2em}
+#lskip{background:none;border:0;color:var(--mute);text-decoration:underline;cursor:pointer;font:inherit;font-size:.85rem}
+@media print{.sync,#login{display:none!important}}
+.note{font-size:.85rem;color:var(--mute);min-height:1.2em}
+@media (max-width:620px){
+.head{display:none}
+.row{grid-template-columns:1fr 1fr 1fr;grid-template-areas:"n n x" "u p q" "s s s"}
+.row .n{grid-area:n}.row .u{grid-area:u}.row .p{grid-area:p}.row .q{grid-area:q}.row .sub{grid-area:s}.row .act{grid-area:x}
+}
+@media print{.bar,.x,.s,.total{position:static}.bar,.x,.s{display:none}.row:not(.on),.cat.empty{display:none}body{background:#fff;color:#000}}
+
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tab{flex:1;font:inherit;font-weight:600;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--mute);cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tab.on{border-color:var(--green);color:var(--green);background:var(--soft)}
+.addrow input{flex:1;min-width:180px}
+@media print{.tabs,.addrow{display:none!important}}
+h1{font-size:1.8rem}
+</style>
+</head>
+<body>
+<main>
+<h1>Commande gaz</h1>
+<div class="sync" id="sync">Synchronisation : non connecté</div>
+<div class="tabs" id="tabs"></div>
+<div class="top">
+<label>Nom du fournisseur<input type="text" id="sname"></label>
+<label>Date de livraison<input type="date" id="date"></label>
+</div>
+<div class="head"><div>Produit</div><div>Unité</div><div>Prix d'achat € HT</div><div>Quantité</div><div style="text-align:right">Sous-total</div><div></div></div>
+<div id="list"></div>
+<div class="bar addrow"><input id="newcat" placeholder="Nouvelle catégorie (ex. Butane, Propane…)"><button class="b" id="addcat">Ajouter la catégorie</button></div>
+<div class="bar"><button class="b" id="reset">Remettre les quantités à zéro</button></div>
+<div class="total"><div class="ln"><span id="cnt">0 produit commandé</span></div>
+<div class="ln"><span>Total HT</span><b id="ht">0,00 €</b></div>
+<div class="ln"><span>TVA <input id="tva" inputmode="decimal" aria-label="Taux de TVA"> %</span><b id="tv">0,00 €</b></div>
+<div class="ln big"><span>Total TTC</span><strong id="tot">0,00 €</strong></div></div>
+<div class="bar">
+<button class="b p" id="copy">Copier la commande</button>
+<button class="b" id="print">Imprimer</button>
+</div>
+<div class="note" id="note"></div>
+<div class="bar"><button class="b s" id="logout" style="display:none">Se déconnecter</button></div>
+</main>
+<div id="login"><div class="box">
+<h2>Connexion</h2>
+<p>Connectez-vous une fois : vos prix et vos commandes se synchronisent entre vos appareils.</p>
+<input id="lmail" type="email" placeholder="Adresse e-mail" autocomplete="username">
+<input id="lpass" type="password" placeholder="Mot de passe" autocomplete="current-password">
+<div id="lerr"></div>
+<button class="b p" id="lbtn">Se connecter</button>
+<button id="lskip">Continuer sans synchroniser</button>
+</div></div>
+<script>
+var KEY="commande-gaz-v1";
+var UNITS=["bouteille","pièce","carton","palette"];
+var nid=0;
+function mk(c){return{id:++nid,c:c,n:"",u:"bouteille",p:"",q:""}}
+function sup(n){return{name:n,date:"",items:["Butane","Propane"].map(mk)}}
+function seeds(){
+var D=[["Antargaz",[["Elfi Butane","16,13"],["Elfi Propane","18,64"],["Calypso","26,00"],["Butane13","34,27"],["Propane 13","34,27"]]],
+["Butagaz",[["Cube butane","18,34"],["Cube propane","18,34"],["Viséo 10","25,99"],["Butane13","31,35"],["Propane 13","31,35"],["Propane 35","85,25"]]]];
+return D.map(function(d){return{name:d[0],date:"",items:d[1].map(function(x){var o=mk("Bouteilles");o.n=x[0];o.u="bouteille";o.p=x[1];return o})}})}
+var S={tva:"20",active:0,suppliers:seeds()};
+try{var raw=localStorage.getItem(KEY);if(raw){var o=JSON.parse(raw);if(o&&o.suppliers&&o.suppliers.length)S=o}}catch(e){}
+function fix(){
+if(S.suppliers.length===1&&S.suppliers[0].name==="Fournisseur gaz"&&S.suppliers[0].items.every(function(i){return !i.n&&!i.p&&!i.q}))S.suppliers=seeds();
+if(!S.tva)S.tva="20";
+if(S.active==null||!S.suppliers[S.active])S.active=0;
+var d=new Date().toISOString().slice(0,10);
+S.suppliers.forEach(function(s){if(!s.date)s.date=d});
+nid=0;S.suppliers.forEach(function(s){s.items.forEach(function(i){nid=Math.max(nid,i.id)})})}
+fix();
+var fmt=new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR"});
+function num(v){var x=parseFloat(String(v).replace(",","."));return isNaN(x)?0:x}
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function save(){saveLocal();if(window.cloudPush)window.cloudPush()}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")}
+function cur(){return S.suppliers[S.active]}
+function find(id){return cur().items.filter(function(i){return i.id==id})[0]}
+function cats(){var a=[];cur().items.forEach(function(i){if(a.indexOf(i.c)<0)a.push(i.c)});return a}
+function label(s,k){return s.name||("Fournisseur "+(k+1))}
+function render(){
+var s=cur(),h="";
+document.getElementById("tabs").innerHTML=S.suppliers.map(function(x,k){return'<button class="tab'+(k===S.active?' on':'')+'" data-tab="'+k+'">'+esc(label(x,k))+'</button>'}).join("");
+document.getElementById("sname").value=s.name;
+document.getElementById("date").value=s.date;
+document.getElementById("tva").value=S.tva;
+cats().forEach(function(c){
+h+='<div class="cat"><div class="ch"><h2>'+esc(c)+'</h2><button class="b s" data-add="'+esc(c)+'">Ajouter un produit</button></div>';
+s.items.filter(function(i){return i.c===c}).forEach(function(it){
+h+='<div class="row" data-id="'+it.id+'">'+
+'<input class="n" data-k="n" value="'+esc(it.n)+'" placeholder="Nom du produit" aria-label="Produit">'+
+'<select class="u" data-k="u" aria-label="Unité">'+UNITS.map(function(u){return'<option'+(u===it.u?' selected':'')+'>'+u+'</option>'}).join("")+'</select>'+
+'<input class="p" data-k="p" inputmode="decimal" value="'+esc(it.p)+'" placeholder="0,00" aria-label="Prix d\'achat">'+
+'<input class="q" data-k="q" inputmode="decimal" value="'+esc(it.q)+'" placeholder="0" aria-label="Quantité">'+
+'<div class="sub"></div>'+
+'<div class="act"><button class="x" data-up="1" aria-label="Monter">▲</button><button class="x" data-down="1" aria-label="Descendre">▼</button><button class="x" data-ins="1" aria-label="Insérer un produit dessous">＋</button><button class="x" data-del="1" aria-label="Supprimer">×</button></div></div>'});
+h+='</div>'});
+document.getElementById("list").innerHTML=h;
+calc()}
+function calc(){
+var t=0,c=0;
+document.querySelectorAll(".row").forEach(function(r){
+var it=find(r.dataset.id);if(!it)return;
+var s=num(it.p)*num(it.q);t+=s;
+var on=num(it.q)>0;if(on)c++;
+r.classList.toggle("on",on);
+r.querySelector(".sub").textContent=s>0?fmt.format(s):"–"});
+document.querySelectorAll(".cat").forEach(function(d){d.classList.toggle("empty",!d.querySelector(".row.on"))});
+var tv=t*num(S.tva)/100;
+document.getElementById("ht").textContent=fmt.format(t);
+document.getElementById("tv").textContent=fmt.format(tv);
+document.getElementById("tot").textContent=fmt.format(t+tv);
+document.getElementById("cnt").textContent=c+(c>1?" produits commandés":" produit commandé");
+return t}
+function newRow(c,at){var it=mk(c);var a=cur().items;if(at==null)a.push(it);else a.splice(at,0,it);save();render();document.querySelector('.row[data-id="'+it.id+'"] .n').focus()}
+document.getElementById("tabs").addEventListener("click",function(e){
+var k=e.target.dataset.tab;if(k==null)return;S.active=+k;saveLocal();render()});
+var L0=document.getElementById("list");
+L0.addEventListener("input",function(e){
+var r=e.target.closest(".row");if(!r)return;
+var it=find(r.dataset.id);
+if(it&&e.target.dataset.k){it[e.target.dataset.k]=e.target.value;save();calc()}});
+L0.addEventListener("click",function(e){
+var a=cur().items,tr=e.target.closest(".row");
+if(tr&&(e.target.dataset.up||e.target.dataset.down||e.target.dataset.ins||e.target.dataset.del)){
+var id=tr.dataset.id,i=a.findIndex(function(x){return x.id==id});
+if(e.target.dataset.del){a.splice(i,1);save();render();return}
+if(e.target.dataset.ins){newRow(a[i].c,i+1);return}
+var j=e.target.dataset.up?i-1:i+1;
+if(j>=0&&j<a.length&&a[j].c===a[i].c){var t=a[i];a[i]=a[j];a[j]=t;save();render();var el=document.querySelector('.row[data-id="'+id+'"]');if(el)el.scrollIntoView({block:"nearest"})}
+return}
+if(e.target.dataset.add){var c=e.target.dataset.add,last=-1;
+a.forEach(function(x,k){if(x.c===c)last=k});newRow(c,last+1)}});
+document.getElementById("addcat").onclick=function(){
+var v=document.getElementById("newcat").value.trim();if(!v)return;
+document.getElementById("newcat").value="";newRow(v,null)};
+document.getElementById("sname").addEventListener("input",function(e){
+cur().name=e.target.value;save();
+document.querySelector(".tab.on").textContent=label(cur(),S.active)});
+document.getElementById("date").addEventListener("input",function(e){cur().date=e.target.value;save()});
+document.getElementById("tva").addEventListener("input",function(e){S.tva=e.target.value;save();calc()});
+document.getElementById("reset").onclick=function(){cur().items.forEach(function(i){i.q=""});save();render()};
+document.getElementById("print").onclick=function(){window.print()};
+document.getElementById("copy").onclick=function(){
+var s=cur(),d=s.date?s.date.split("-").reverse().join("/"):"";
+var L=["Commande gaz - "+label(s,S.active)+" - livraison du "+d];
+cats().forEach(function(c){
+var rows=s.items.filter(function(i){return i.c===c&&num(i.q)>0});
+if(!rows.length)return;
+L.push("");L.push(c+" :");
+rows.forEach(function(i){
+var x=num(i.p)*num(i.q);
+L.push("- "+(i.n||"(sans nom)")+" : "+i.q+" "+i.u+(num(i.p)?" × "+fmt.format(num(i.p))+" = "+fmt.format(x):""))})});
+var T=calc(),V=T*num(S.tva)/100;
+L.push("");L.push("Total HT : "+fmt.format(T));L.push("TVA "+S.tva+" % : "+fmt.format(V));L.push("Total TTC : "+fmt.format(T+V));
+var txt=L.join("\n"),note=document.getElementById("note");
+function fallback(){var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();
+var ok=false;try{ok=document.execCommand("copy")}catch(e){}document.body.removeChild(ta);
+note.textContent=ok?"Commande copiée.":"Copie impossible : utilisez Imprimer."}
+try{navigator.clipboard.writeText(txt).then(function(){note.textContent="Commande copiée."},fallback)}catch(e){fallback()}};
+render();
+if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(function(){})}
+</script>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import {initializeFirestore,persistentLocalCache,getFirestore,doc,onSnapshot,setDoc} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+const firebaseConfig={
+  apiKey:"AIzaSyDAURttcW1ZHesy1dAsLMbSOxpjRPsvzHM",
+  authDomain:"cocci-primeur.firebaseapp.com",
+  projectId:"cocci-primeur",
+  storageBucket:"cocci-primeur.firebasestorage.app",
+  messagingSenderId:"632790394239",
+  appId:"1:632790394239:web:c5a6e4d8a37922f966264a"
+};
+const $=id=>document.getElementById(id);
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+let db;
+try{db=initializeFirestore(app,{localCache:persistentLocalCache()})}catch(e){db=getFirestore(app)}
+const ref=()=>doc(db,"commande_gaz","courante");
+let unsub=null,timer=null,applying=false;
+function status(t,ok){const e=$("sync");e.textContent="Synchronisation : "+t;e.style.color=ok?"var(--green)":"var(--mute)"}
+function snap(){return{tva:S.tva||"",suppliers:S.suppliers}}
+const canon=o=>JSON.stringify(o,(k,v)=>v&&typeof v==="object"&&!Array.isArray(v)?Object.keys(v).sort().reduce((a,x)=>(a[x]=v[x],a),{}):v);
+async function push(){try{await setDoc(ref(),snap());status("à jour",1)}catch(e){status("erreur ("+(e.code||"inconnue")+")",0)}}
+window.cloudPush=function(){
+  if(applying||!auth.currentUser)return;
+  clearTimeout(timer);status("enregistrement…",1);
+  timer=setTimeout(push,700)};
+onAuthStateChanged(auth,function(u){
+  if(unsub){unsub();unsub=null}
+  if(!u){$("login").style.display="flex";$("logout").style.display="none";status("non connecté",0);return}
+  $("login").style.display="none";$("logout").style.display="";status("connexion…",1);
+  unsub=onSnapshot(ref(),function(d){
+    if(!d.exists()){if(!d.metadata.fromCache)push();return}
+    if(d.metadata.hasPendingWrites)return;
+    const r=d.data();
+    if(!r.suppliers||!r.suppliers.length)return;
+    const remote={tva:r.tva||"",suppliers:r.suppliers};
+    if(canon(remote)===canon(snap())){status(navigator.onLine?"à jour":"hors connexion",navigator.onLine);return}
+    applying=true;
+    S.tva=remote.tva||S.tva;S.suppliers=remote.suppliers;
+    fix();saveLocal();render();applying=false;status("à jour",1)
+  },function(e){status("erreur ("+(e.code||"inconnue")+")",0)})
+});
+$("lbtn").onclick=async function(){
+  $("lerr").textContent="";
+  try{await signInWithEmailAndPassword(auth,$("lmail").value.trim(),$("lpass").value)}
+  catch(e){$("lerr").textContent=(e.code==="auth/invalid-credential"||e.code==="auth/wrong-password"||e.code==="auth/user-not-found")?"Adresse ou mot de passe incorrect.":"Connexion impossible ("+(e.code||"erreur")+")"}};
+$("lpass").addEventListener("keydown",function(e){if(e.key==="Enter")$("lbtn").click()});
+$("lskip").onclick=function(){$("login").style.display="none"};
+$("logout").onclick=function(){signOut(auth)};
+window.addEventListener("offline",function(){if(auth.currentUser)status("hors connexion",0)});
+window.addEventListener("online",function(){if(auth.currentUser)status("à jour",1)});
+</script>
+</body>
+</html>
