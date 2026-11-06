@@ -15,7 +15,7 @@ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:en
 :root[data-theme="dark"]{--bg:#141a16;--card:#1c241f;--ink:#e8efe9;--mute:#9aaba0;--line:#2f3b33;--green:#6fc287;--red:#ff7a6b;--soft:#243029}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,sans-serif;line-height:1.4}
-main{max-width:760px;margin:0 auto;padding:20px 14px 40px}
+main{max-width:1000px;margin:0 auto;padding:20px 14px 40px}
 .logo{background:#fff;border-radius:12px;padding:8px;margin-bottom:14px;text-align:center}.logo img{max-width:100%;height:auto;max-height:130px}
 h1{font-size:1.5rem;font-weight:800;margin:0 0 14px}
 h2{font-size:1.15rem;font-weight:800;margin:0;color:var(--green)}
@@ -24,7 +24,7 @@ h2{font-size:1.15rem;font-weight:800;margin:0;color:var(--green)}
 .top label{flex:1;min-width:150px;font-size:.85rem;color:var(--mute);display:flex;flex-direction:column;gap:4px}
 input,select{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-width:0}
 input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--green);outline-offset:1px}
-.head,.row{display:grid;grid-template-columns:minmax(0,2.2fr) 78px 84px 84px 84px 120px;gap:6px;align-items:center}
+.head,.row{display:grid;grid-template-columns:minmax(0,1.6fr) 76px 80px 62px 62px 62px 76px 84px 120px;gap:6px;align-items:center}
 .head{font-size:.78rem;color:var(--mute);padding:0 4px 6px}
 .row{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px;margin-bottom:6px}
 .row.on{border-color:var(--green);background:var(--soft)}
@@ -48,9 +48,12 @@ button.b.p{background:var(--green);color:var(--bg)}
 #lskip{background:none;border:0;color:var(--mute);text-decoration:underline;cursor:pointer;font:inherit;font-size:.85rem}
 @media print{.sync,#login{display:none!important}}
 .note{font-size:.85rem;color:var(--mute);min-height:1.2em}
-@media (max-width:620px){
+.f{display:block;min-width:0}.f span{display:none;font-size:.7rem;color:var(--mute)}
+@media (max-width:760px){
+.f span{display:block}
+.row .st{grid-area:st}.row .pl{grid-area:pl}.row .vi{grid-area:vi}
 .head{display:none}
-.row{grid-template-columns:1fr 1fr 1fr;grid-template-areas:"n n x" "u p q" "s s s"}
+.row{grid-template-columns:1fr 1fr 1fr;grid-template-areas:"n n x" "u p q" "st pl vi" "s s s"}
 .row .n{grid-area:n}.row .u{grid-area:u}.row .p{grid-area:p}.row .q{grid-area:q}.row .sub{grid-area:s}.row .act{grid-area:x}
 }
 @media print{.bar,.x,.s,.total{position:static}.bar,.x,.s{display:none}.row:not(.on),.cat.empty{display:none}body{background:#fff;color:#000}}
@@ -72,7 +75,7 @@ h1{font-size:1.8rem}
 <label>Nom du fournisseur<input type="text" id="sname"></label>
 <label>Date de livraison<input type="date" id="date"></label>
 </div>
-<div class="head"><div>Produit</div><div>Unité</div><div>Prix d'achat € HT</div><div>Quantité</div><div style="text-align:right">Sous-total</div><div></div></div>
+<div class="head"><div>Produit</div><div>Unité</div><div>Prix d'achat € HT</div><div>Stock</div><div>Pleines</div><div>Vides</div><div>Quantité</div><div style="text-align:right">Sous-total</div><div></div></div>
 <div id="list"></div>
 <div class="bar addrow"><input id="newcat" placeholder="Nouvelle catégorie (ex. Butane, Propane…)"><button class="b" id="addcat">Ajouter la catégorie</button></div>
 <div class="bar"><button class="b" id="reset">Remettre les quantités à zéro</button></div>
@@ -100,7 +103,7 @@ h1{font-size:1.8rem}
 var KEY="commande-gaz-v1";
 var UNITS=["bouteille","pièce","carton","palette"];
 var nid=0;
-function mk(c){return{id:++nid,c:c,n:"",u:"bouteille",p:"",q:""}}
+function mk(c){return{id:++nid,c:c,n:"",u:"bouteille",p:"",st:"",pl:"",vi:"",q:""}}
 function sup(n){return{name:n,date:"",items:["Butane","Propane"].map(mk)}}
 function seeds(){
 var D=[["Antargaz",[["Elfi Butane","16,13"],["Elfi Propane","18,64"],["Calypso","26,00"],["Butane13","34,27"],["Propane 13","34,27"]]],
@@ -138,6 +141,9 @@ h+='<div class="row" data-id="'+it.id+'">'+
 '<input class="n" data-k="n" value="'+esc(it.n)+'" placeholder="Nom du produit" aria-label="Produit">'+
 '<select class="u" data-k="u" aria-label="Unité">'+UNITS.map(function(u){return'<option'+(u===it.u?' selected':'')+'>'+u+'</option>'}).join("")+'</select>'+
 '<input class="p" data-k="p" inputmode="decimal" value="'+esc(it.p)+'" placeholder="0,00" aria-label="Prix d\'achat">'+
+'<label class="f st"><span>Stock</span><input data-k="st" inputmode="numeric" value="'+esc(it.st||"")+'" placeholder="0" aria-label="Stock"></label>'+
+'<label class="f pl"><span>Pleines</span><input data-k="pl" inputmode="numeric" value="'+esc(it.pl||"")+'" placeholder="0" aria-label="Bouteilles pleines"></label>'+
+'<label class="f vi"><span>Vides</span><input data-k="vi" inputmode="numeric" value="'+esc(it.vi||"")+'" placeholder="0" aria-label="Bouteilles vides"></label>'+
 '<input class="q" data-k="q" inputmode="decimal" value="'+esc(it.q)+'" placeholder="0" aria-label="Quantité">'+
 '<div class="sub"></div>'+
 '<div class="act"><button class="x" data-up="1" aria-label="Monter">▲</button><button class="x" data-down="1" aria-label="Descendre">▼</button><button class="x" data-ins="1" aria-label="Insérer un produit dessous">＋</button><button class="x" data-del="1" aria-label="Supprimer">×</button></div></div>'});
