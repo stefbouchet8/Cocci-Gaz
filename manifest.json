@@ -1,7 +1,7 @@
 {
  "id": "cocci-gaz-v2",
- "name": "Commande gaz",
- "short_name": "Commande gaz",
+ "name": "Cocci Gaz",
+ "short_name": "Cocci Gaz",
  "start_url": "./index.html?app=gaz2",
  "scope": "./",
  "display": "standalone",
