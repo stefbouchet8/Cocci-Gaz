@@ -142,10 +142,10 @@ h+='<div class="row" data-id="'+it.id+'">'+
 '<input class="n" data-k="n" value="'+esc(it.n)+'" placeholder="Nom du produit" aria-label="Produit">'+
 '<select class="u" data-k="u" aria-label="Unité">'+UNITS.map(function(u){return'<option'+(u===it.u?' selected':'')+'>'+u+'</option>'}).join("")+'</select>'+
 '<input class="p" data-k="p" inputmode="decimal" value="'+esc(it.p)+'" placeholder="0,00" aria-label="Prix d\'achat">'+
-'<label class="f st"><span>Stock</span><input data-k="st" inputmode="numeric" value="'+esc(it.st||"")+'" placeholder="0" aria-label="Stock"></label>'+
-'<label class="f pl"><span>Pleines</span><input data-k="pl" inputmode="numeric" value="'+esc(it.pl||"")+'" placeholder="0" aria-label="Bouteilles pleines"></label>'+
-'<label class="f vi"><span>Vides</span><input data-k="vi" inputmode="numeric" value="'+esc(it.vi||"")+'" placeholder="0" aria-label="Bouteilles vides"></label>'+
-'<input class="q" data-k="q" inputmode="decimal" value="'+esc(it.q)+'" placeholder="0" aria-label="Quantité">'+
+'<label class="f st"><span>Stock</span><input data-k="st" inputmode="numeric" enterkeyhint="next" value="'+esc(it.st||"")+'" placeholder="0" aria-label="Stock"></label>'+
+'<label class="f pl"><span>Pleines</span><input data-k="pl" inputmode="numeric" enterkeyhint="next" value="'+esc(it.pl||"")+'" placeholder="0" aria-label="Bouteilles pleines"></label>'+
+'<label class="f vi"><span>Vides</span><input data-k="vi" inputmode="numeric" enterkeyhint="next" value="'+esc(it.vi||"")+'" placeholder="0" aria-label="Bouteilles vides"></label>'+
+'<input class="q" data-k="q" inputmode="decimal" enterkeyhint="next" value="'+esc(it.q)+'" placeholder="0" aria-label="Quantité">'+
 '<div class="sub"></div>'+
 '<div class="act"><button class="x" data-up="1" aria-label="Monter">▲</button><button class="x" data-down="1" aria-label="Descendre">▼</button><button class="x" data-ins="1" aria-label="Insérer un produit dessous">＋</button><button class="x" data-del="1" aria-label="Supprimer">×</button></div></div>'});
 h+='</div>'});
@@ -170,6 +170,14 @@ function newRow(c,at){var it=mk(c);var a=cur().items;if(at==null)a.push(it);else
 document.getElementById("tabs").addEventListener("click",function(e){
 var k=e.target.dataset.tab;if(k==null)return;S.active=+k;saveLocal();render()});
 var L0=document.getElementById("list");
+L0.addEventListener("keydown",function(e){
+var k=e.target.dataset&&e.target.dataset.k;
+if(e.key!=="Enter"||["q","st","pl","vi"].indexOf(k)<0)return;
+e.preventDefault();
+var qs=Array.prototype.slice.call(document.querySelectorAll('.row input[data-k="'+k+'"]'));
+var n=qs[qs.indexOf(e.target)+1];
+if(n){n.focus();n.select();if(n.scrollIntoView)n.scrollIntoView({block:"center"})}else{e.target.blur()}});
+L0.addEventListener("focusin",function(e){var k=e.target.dataset&&e.target.dataset.k;if(["q","st","pl","vi"].indexOf(k)>=0){var t=e.target;setTimeout(function(){try{t.select()}catch(x){}},0)}});
 L0.addEventListener("input",function(e){
 var r=e.target.closest(".row");if(!r)return;
 var it=find(r.dataset.id);
