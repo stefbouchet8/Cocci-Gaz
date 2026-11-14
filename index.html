@@ -24,7 +24,7 @@ h2{font-size:1.15rem;font-weight:800;margin:0;color:var(--green)}
 .top label{flex:1;min-width:150px;font-size:.85rem;color:var(--mute);display:flex;flex-direction:column;gap:4px}
 input,select{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-width:0}
 input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--green);outline-offset:1px}
-.head,.row{display:grid;grid-template-columns:minmax(0,1.6fr) 76px 80px 62px 62px 62px 76px 84px 120px;gap:6px;align-items:center}
+.head,.row{display:grid;grid-template-columns:minmax(190px,2fr) 76px 80px 62px 62px 84px 84px 120px;gap:6px;align-items:center}
 .head{font-size:.78rem;color:var(--mute);padding:0 4px 6px}
 .row{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px;margin-bottom:6px}
 .row.on{border-color:var(--green);background:var(--soft)}
@@ -49,11 +49,12 @@ button.b.p{background:var(--green);color:var(--bg)}
 @media print{.sync,#login{display:none!important}}
 .note{font-size:.85rem;color:var(--mute);min-height:1.2em}
 .f{display:block;min-width:0}.f span{display:none;font-size:.7rem;color:var(--mute)}
-@media (max-width:760px){
+input.q[readonly]{background:var(--soft);font-weight:700;border-color:var(--green)}
+@media (max-width:820px){
 .f span{display:block}
-.row .st{grid-area:st}.row .pl{grid-area:pl}.row .vi{grid-area:vi}
+.row .qf{grid-area:q}.row .st{grid-area:st}.row .pl{grid-area:pl}.row .vi{grid-area:vi}
 .head{display:none}
-.row{grid-template-columns:1fr 1fr 1fr;grid-template-areas:"n n x" "u p q" "st pl vi" "s s s"}
+.row{grid-template-columns:1fr 1fr 1fr;grid-template-areas:"n n x" "u p s" "st pl q"}
 .row .n{grid-area:n}.row .u{grid-area:u}.row .p{grid-area:p}.row .q{grid-area:q}.row .sub{grid-area:s}.row .act{grid-area:x}
 }
 @media print{.bar,.x,.s,.total{position:static}.bar,.x,.s{display:none}.row:not(.on),.cat.empty{display:none}body{background:#fff;color:#000}}
@@ -76,10 +77,11 @@ h1{font-size:1.5rem}
 <label>Nom du fournisseur<input type="text" id="sname"></label>
 <label>Date de livraison<input type="date" id="date"></label>
 </div>
-<div class="head"><div>Produit</div><div>Unité</div><div>Prix d'achat € HT</div><div>Stock</div><div>Pleines</div><div>Vides</div><div>Quantité</div><div style="text-align:right">Sous-total</div><div></div></div>
+<div class="note" style="margin:0 0 8px">À commander = Pleines − Stock. C'est aussi le nombre de bouteilles vides à rendre.</div>
+<div class="head"><div>Produit</div><div>Unité</div><div>Prix d'achat € HT</div><div>Stock</div><div>Pleines</div><div>À commander</div><div style="text-align:right">Sous-total</div><div></div></div>
 <div id="list"></div>
 <div class="bar addrow"><input id="newcat" placeholder="Nouvelle catégorie (ex. Butane, Propane…)"><button class="b" id="addcat">Ajouter la catégorie</button></div>
-<div class="bar"><button class="b" id="reset">Remettre les quantités à zéro</button></div>
+<div class="bar"><button class="b" id="reset">Remettre le stock et les commandes à zéro</button></div>
 <div class="total"><div class="ln"><span id="cnt">0 produit commandé</span></div>
 <div class="ln"><span>Total HT</span><b id="ht">0,00 €</b></div>
 <div class="ln"><span>TVA <input id="tva" inputmode="decimal" aria-label="Taux de TVA"> %</span><b id="tv">0,00 €</b></div>
@@ -144,8 +146,7 @@ h+='<div class="row" data-id="'+it.id+'">'+
 '<input class="p" data-k="p" inputmode="decimal" value="'+esc(it.p)+'" placeholder="0,00" aria-label="Prix d\'achat">'+
 '<label class="f st"><span>Stock</span><input data-k="st" inputmode="numeric" enterkeyhint="next" value="'+esc(it.st||"")+'" placeholder="0" aria-label="Stock"></label>'+
 '<label class="f pl"><span>Pleines</span><input data-k="pl" inputmode="numeric" enterkeyhint="next" value="'+esc(it.pl||"")+'" placeholder="0" aria-label="Bouteilles pleines"></label>'+
-'<label class="f vi"><span>Vides</span><input data-k="vi" inputmode="numeric" enterkeyhint="next" value="'+esc(it.vi||"")+'" placeholder="0" aria-label="Bouteilles vides"></label>'+
-'<input class="q" data-k="q" inputmode="decimal" enterkeyhint="next" value="'+esc(it.q)+'" placeholder="0" aria-label="Quantité">'+
+'<label class="f qf"><span>À commander</span><input class="q" data-k="q" inputmode="decimal" enterkeyhint="next" value="'+esc(it.q)+'" placeholder="0" aria-label="Quantité à commander"></label>'+
 '<div class="sub"></div>'+
 '<div class="act"><button class="x" data-up="1" aria-label="Monter">▲</button><button class="x" data-down="1" aria-label="Descendre">▼</button><button class="x" data-ins="1" aria-label="Insérer un produit dessous">＋</button><button class="x" data-del="1" aria-label="Supprimer">×</button></div></div>'});
 h+='</div>'});
@@ -155,6 +156,10 @@ function calc(){
 var t=0,c=0;
 document.querySelectorAll(".row").forEach(function(r){
 var it=find(r.dataset.id);if(!it)return;
+var auto=String(it.st||"").trim()!=="";
+var qi=r.querySelector('input[data-k="q"]');
+if(auto){it.q=String(Math.max(0,num(it.pl)-num(it.st))).replace(".",",");if(qi)qi.value=it.q}
+if(qi)qi.readOnly=auto;
 var s=num(it.p)*num(it.q);t+=s;
 var on=num(it.q)>0;if(on)c++;
 r.classList.toggle("on",on);
@@ -172,16 +177,16 @@ var k=e.target.dataset.tab;if(k==null)return;S.active=+k;saveLocal();render()});
 var L0=document.getElementById("list");
 L0.addEventListener("keydown",function(e){
 var k=e.target.dataset&&e.target.dataset.k;
-if(e.key!=="Enter"||["q","st","pl","vi"].indexOf(k)<0)return;
+if(e.key!=="Enter"||["st","pl","q"].indexOf(k)<0)return;
 e.preventDefault();
 var qs=Array.prototype.slice.call(document.querySelectorAll('.row input[data-k="'+k+'"]'));
 var n=qs[qs.indexOf(e.target)+1];
 if(n){n.focus();n.select();if(n.scrollIntoView)n.scrollIntoView({block:"center"})}else{e.target.blur()}});
-L0.addEventListener("focusin",function(e){var k=e.target.dataset&&e.target.dataset.k;if(["q","st","pl","vi"].indexOf(k)>=0){var t=e.target;setTimeout(function(){try{t.select()}catch(x){}},0)}});
+L0.addEventListener("focusin",function(e){var k=e.target.dataset&&e.target.dataset.k;if(["st","pl","q"].indexOf(k)>=0){var t=e.target;setTimeout(function(){try{t.select()}catch(x){}},0)}});
 L0.addEventListener("input",function(e){
 var r=e.target.closest(".row");if(!r)return;
 var it=find(r.dataset.id);
-if(it&&e.target.dataset.k){it[e.target.dataset.k]=e.target.value;save();calc()}});
+if(it&&e.target.dataset.k){it[e.target.dataset.k]=e.target.value;calc();save()}});
 L0.addEventListener("click",function(e){
 var a=cur().items,tr=e.target.closest(".row");
 if(tr&&(e.target.dataset.up||e.target.dataset.down||e.target.dataset.ins||e.target.dataset.del)){
@@ -201,7 +206,7 @@ cur().name=e.target.value;save();
 document.querySelector(".tab.on").textContent=label(cur(),S.active)});
 document.getElementById("date").addEventListener("input",function(e){cur().date=e.target.value;save()});
 document.getElementById("tva").addEventListener("input",function(e){S.tva=e.target.value;save();calc()});
-document.getElementById("reset").onclick=function(){cur().items.forEach(function(i){i.q=""});save();render()};
+document.getElementById("reset").onclick=function(){cur().items.forEach(function(i){i.q="";i.st=""});save();render()};
 document.getElementById("print").onclick=function(){window.print()};
 document.getElementById("copy").onclick=function(){
 var s=cur(),d=s.date?s.date.split("-").reverse().join("/"):"";
