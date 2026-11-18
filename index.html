@@ -77,11 +77,11 @@ h1{font-size:1.5rem}
 <label>Nom du fournisseur<input type="text" id="sname"></label>
 <label>Date de livraison<input type="date" id="date"></label>
 </div>
-<div class="note" style="margin:0 0 8px">À commander = Pleines − Stock. C'est aussi le nombre de bouteilles vides à rendre.</div>
+<div class="note" style="margin:0 0 8px">Stock = total de vos bouteilles. À commander = Stock − Pleines : c'est aussi le nombre de bouteilles vides à rendre.</div>
 <div class="head"><div>Produit</div><div>Unité</div><div>Prix d'achat € HT</div><div>Stock</div><div>Pleines</div><div>À commander</div><div style="text-align:right">Sous-total</div><div></div></div>
 <div id="list"></div>
 <div class="bar addrow"><input id="newcat" placeholder="Nouvelle catégorie (ex. Butane, Propane…)"><button class="b" id="addcat">Ajouter la catégorie</button></div>
-<div class="bar"><button class="b" id="reset">Remettre le stock et les commandes à zéro</button></div>
+<div class="bar"><button class="b" id="reset">Remettre les pleines et les commandes à zéro</button></div>
 <div class="total"><div class="ln"><span id="cnt">0 produit commandé</span></div>
 <div class="ln"><span>Total HT</span><b id="ht">0,00 €</b></div>
 <div class="ln"><span>TVA <input id="tva" inputmode="decimal" aria-label="Taux de TVA"> %</span><b id="tv">0,00 €</b></div>
@@ -91,7 +91,7 @@ h1{font-size:1.5rem}
 <button class="b" id="print">Imprimer</button>
 </div>
 <div class="note" id="note"></div>
-<div class="note" style="text-align:center">Cocci Gaz · version 3 (calcul automatique)</div>
+<div class="note" style="text-align:center">Cocci Gaz · version 4 (calcul automatique)</div>
 <div class="bar"><button class="b s" id="logout" style="display:none">Se déconnecter</button></div>
 </main>
 <div id="login"><div class="box">
@@ -157,9 +157,9 @@ function calc(){
 var t=0,c=0;
 document.querySelectorAll(".row").forEach(function(r){
 var it=find(r.dataset.id);if(!it)return;
-var auto=String(it.st||"").trim()!=="";
+var auto=String(it.st||"").trim()!==""&&String(it.pl||"").trim()!=="";
 var qi=r.querySelector('input[data-k="q"]');
-if(auto){it.q=String(Math.max(0,num(it.pl)-num(it.st))).replace(".",",");if(qi)qi.value=it.q}
+if(auto){it.q=String(Math.max(0,num(it.st)-num(it.pl))).replace(".",",");if(qi)qi.value=it.q}
 if(qi)qi.readOnly=auto;
 var s=num(it.p)*num(it.q);t+=s;
 var on=num(it.q)>0;if(on)c++;
@@ -207,7 +207,7 @@ cur().name=e.target.value;save();
 document.querySelector(".tab.on").textContent=label(cur(),S.active)});
 document.getElementById("date").addEventListener("input",function(e){cur().date=e.target.value;save()});
 document.getElementById("tva").addEventListener("input",function(e){S.tva=e.target.value;save();calc()});
-document.getElementById("reset").onclick=function(){cur().items.forEach(function(i){i.q="";i.st=""});save();render()};
+document.getElementById("reset").onclick=function(){cur().items.forEach(function(i){i.q="";i.pl=""});save();render()};
 document.getElementById("print").onclick=function(){window.print()};
 document.getElementById("copy").onclick=function(){
 var s=cur(),d=s.date?s.date.split("-").reverse().join("/"):"";
